@@ -259,14 +259,25 @@ manageServices() {
 	local base_cmd="sudo launchctl"
 
 	for service in "${services[@]}"; do
+		# If domain is "user" or "gui", include the userID, else it is a system domain and userID is not needed.
+		if [[ ${domain} == "user" || ${domain} == "gui" ]]; then
+			target="${domain}/${userID}/${service}"
+			sleep=0.25
+		else
+			target="system/${service}"
+			sleep=1
+		fi
+
 		if [[ ${action} == "disable" ]]; then
 			echo "Disabling service in domain ${domain}: ${service}"
-			# ${base_cmd} bootout "${domain}/${userID}/${service}" &>/dev/null || true
-			${base_cmd} disable "${domain}/${userID}/${service}"
+			${base_cmd} bootout "${target}"
+			sleep "${sleep}"
+			${base_cmd} disable "${target}"
 		else
 			echo "Enabling service in domain ${domain}: ${service}"
-			${base_cmd} enable "${domain}/${userID}/${service}"
-			# ${base_cmd} bootstrap "${domain}/${userID}/${service}" &>/dev/null || true
+			${base_cmd} enable "${target}"
+			${base_cmd} bootstrap "${target}"
+			sleep "${sleep}"
 		fi
 	done
 }
@@ -278,29 +289,32 @@ manageTweaks() {
 	if [[ ${action} == "disable" ]]; then
 		# Disables the automatic restoration of apps after logging out or shutting down.
 		# This means applications that were open before logout or shutdown won't automatically reopen.
-		defaults write "com.apple.loginwindow TALLogoutSavesState" -bool false
-		defaults write "com.apple.loginwindow LoginwindowLaunchesRelaunchApps" -bool false
+		defaults write com.apple.loginwindow TALLogoutSavesState -bool false
+		defaults write com.apple.loginwindow LoginwindowLaunchesRelaunchApps -bool false
 		# Turns off window opening and closing animations to improve system responsiveness.
-		defaults write "NSGlobalDomain NSAutomaticWindowAnimationsEnabled" -bool false
+		defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
 		# Reduces the time it takes to resize windows to near-instant (0.001 seconds).
-		defaults write "NSGlobalDomain NSWindowResizeTime" -float 0.001
+		defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
 		# Disables the animation for Quick Look panels, making them appear instantly.
-		defaults write "-g QLPanelAnimationDuration" -float 0
+		defaults write -g QLPanelAnimationDuration -float 0
 		# Sets the Dock auto-hide and show delay to zero, making it react instantly.
-		defaults write "com.apple.dock autohide-time-modifier" -float 0
+		defaults write com.apple.dock autohide-time-modifier -float 0
+		defaults write com.apple.dock autohide-delay -float 60
+		# Disables the Dock bouncing.
+		defaults write com.apple.dock no-bouncing -bool true
 		# Disables the Dock launching animation when opening applications.
-		defaults write "com.apple.dock launchanim" -bool false
+		defaults write com.apple.dock launchanim -bool false
 		# Disables the low-priority CPU throttle, giving processes full CPU priority.
 		# Use with caution as it can affect the system's thermal and power characteristics.
 		sudo sysctl -w debug.lowpri_throttle_enabled=0
 	else
-		defaults delete "com.apple.loginwindow TALLogoutSavesState"
-		defaults delete "com.apple.loginwindow LoginwindowLaunchesRelaunchApps"
-		defaults delete "NSGlobalDomain NSAutomaticWindowAnimationsEnabled"
-		defaults delete "NSGlobalDomain NSWindowResizeTime"
-		defaults delete "-g QLPanelAnimationDuration"
-		defaults delete "com.apple.dock autohide-time-modifier"
-		defaults delete "com.apple.dock launchanim"
+		defaults delete com.apple.loginwindow TALLogoutSavesState
+		defaults delete com.apple.loginwindow LoginwindowLaunchesRelaunchApps
+		defaults delete NSGlobalDomain NSAutomaticWindowAnimationsEnabled
+		defaults delete NSGlobalDomain NSWindowResizeTime
+		defaults delete -g QLPanelAnimationDuration
+		defaults delete com.apple.dock autohide-time-modifier
+		defaults delete com.apple.dock launchanim
 		sudo sysctl -w debug.lowpri_throttle_enabled=1
 	fi
 }
@@ -310,17 +324,17 @@ main() {
 	if [[ ${action} == "--revert" ]]; then
 		manageServices "enable" "gui" "${UID}" "${userServices[@]}"
 		manageServices "enable" "system" "" "${systemServices[@]}"
-        manageTweaks "enable"
+		manageTweaks "enable"
 		# Unload cloud services
-		launchctl unload -w /System/Library/LaunchAgents/com.apple.cloudpaird.plist
+		launchctl load /System/Library/LaunchAgents/com.apple.cloudpaird.plist
 		# Unload dock
-		launchctl unload -w /System/Library/LaunchAgents/com.apple.dock.plist
+		launchctl load /System/Library/LaunchAgents/com.apple.dock.plist
 	else
 		manageServices "disable" "gui" "${UID}" "${userServices[@]}"
 		manageServices "disable" "system" "" "${systemServices[@]}"
 		manageTweaks "disable"
-		launchctl load -w /System/Library/LaunchAgents/com.apple.cloudpaird.plist
-		launchctl load -w /System/Library/LaunchAgents/com.apple.dock.plist
+		launchctl unload /System/Library/LaunchAgents/com.apple.cloudpaird.plist
+		launchctl unload /System/Library/LaunchAgents/com.apple.dock.plist
 	fi
 }
 
