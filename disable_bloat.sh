@@ -66,12 +66,27 @@ userServices=(
 	'com.apple.geodMachServiceBridge'
 	# HomeKit service management
 	'com.apple.homed'
-	# iCloud Keychain services
+	# iCloud services
+	'com.apple.iCloudUserNotifications'
+	'com.apple.icloud.findmydeviced.aps-demo'
+	'com.apple.icloud.findmydeviced.aps-development'
+	'com.apple.icloud.findmydeviced.aps-production'
+	'com.apple.icloud.findmydeviced.findmydevice-user-agent'
+	'com.apple.icloud.findmydeviced.ua-services'
+	'com.apple.icloud.findmydeviced'
 	'com.apple.icloud.fmfd'
+	# Search party user agent for finding devices
+	'com.apple.icloud.searchpartyd.accessorydiscoverymanager'
+	'com.apple.icloud.searchpartyd.advertisementcache'
+	'com.apple.icloud.searchpartyd.beaconmanager.agentdaemoninternal'
+	'com.apple.icloud.searchpartyd.beaconmanager'
+	'com.apple.icloud.searchpartyd.finderstatemanager'
+	'com.apple.icloud.searchpartyd.pairingmanager'
+	'com.apple.icloud.searchpartyd.scheduler'
+	'com.apple.icloud.searchpartyd'
+	'com.apple.icloud.searchpartyuseragent'
 	'com.apple.iCloudNotificationAgent'
 	'com.apple.iCloudUserNotifications'
-	# Search party user agent for finding devices
-	'com.apple.icloud.searchpartyuseragent'
 	# Instant messaging service
 	'com.apple.imagent'
 	# Automatic history deletion for iMessage
@@ -139,6 +154,8 @@ userServices=(
 	'com.apple.Siri.agent'
 	# Management of Siri usage context
 	'com.apple.siri.context.service'
+	'com.apple.siriknowledged'
+	'com.apple.suggestd'
 	# Student management services for education
 	'com.apple.macos.studentd'
 	# Knowledge management for Siri
@@ -172,9 +189,7 @@ userServices=(
 # 'com.apple.quicklook.ThumbnailsAgent'
 
 # System services to enable/disable
-ystemServices=(
-	# Provides DHCP (Dynamic Host Configuration Protocol) services
-	'com.apple.bootpd'
+systemServices=(
 	# Backup daemon for Time Machine
 	'com.apple.backupd'
 	# Time Machine helper process for managing backups
@@ -211,12 +226,8 @@ ystemServices=(
 	'com.apple.icloud.searchpartyd'
 	# Service managing iTunes content in the Cloud
 	'com.apple.itunescloudd'
-	# Core service for handling location services
-	'com.apple.locationd'
 	# Manages enterprise and configuration profiles
 	'com.apple.ManagedClient.cloudconfigurationd'
-	# Network service proxy, handling network connections
-	'com.apple.networkserviceproxy'
 	# NetBIOS daemon for legacy Windows networking support
 	'com.apple.netbiosd'
 	# Handles URLSession tasks in the background
@@ -239,26 +250,29 @@ ystemServices=(
 	'com.apple.wifianalyticsd'
 )
 
-# Function to enable/disable services
-configServices() {
+# Function to manage launchctl services using bootstrap/bootout and enable/disable
+manageServices() {
 	local action=$1
-	local path=$2
-	local services=$3
-
-	if [[ ${action} == "disable" ]]; then
-		cmd="bootout"
-	else
-		cmd="bootstrap"
-	fi
+	local domain=$2 # Pass "user" or "system" as domain
+	local userID=$3 # Pass the user ID for user services, ignored for system services
+	local services=("${@:4}")
+	local base_cmd="sudo launchctl"
 
 	for service in "${services[@]}"; do
-		sudo launchctl "${cmd}" "${path}"/"${service}"
-		sudo launchctl "${action}" "${path}"/"${service}"
+		if [[ ${action} == "disable" ]]; then
+			echo "Disabling service in domain ${domain}: ${service}"
+			# ${base_cmd} bootout "${domain}/${userID}/${service}" &>/dev/null || true
+			${base_cmd} disable "${domain}/${userID}/${service}"
+		else
+			echo "Enabling service in domain ${domain}: ${service}"
+			${base_cmd} enable "${domain}/${userID}/${service}"
+			# ${base_cmd} bootstrap "${domain}/${userID}/${service}" &>/dev/null || true
+		fi
 	done
 }
 
 # Function to apply/revert tweaks
-configTweaks() {
+manageTweaks() {
 	local action=$1
 
 	if [[ ${action} == "disable" ]]; then
@@ -293,22 +307,18 @@ configTweaks() {
 
 # Main function
 main() {
-	if [[ $1 == "--revert" ]]; then
-		action="default"
-	else
-		action="disable"
-	fi
-
-	configTweaks "${action}"
-	configServices "${action}" "gui/501" userServices
-	configServices "${action}" "system" systemServices
-
-	if [[ $1 != "--revert" ]]; then
+	if [[ ${action} == "--revert" ]]; then
+		manageServices "enable" "gui" "${UID}" "${userServices[@]}"
+		manageServices "enable" "system" "" "${systemServices[@]}"
+        manageTweaks "enable"
 		# Unload cloud services
 		launchctl unload -w /System/Library/LaunchAgents/com.apple.cloudpaird.plist
 		# Unload dock
 		launchctl unload -w /System/Library/LaunchAgents/com.apple.dock.plist
 	else
+		manageServices "disable" "gui" "${UID}" "${userServices[@]}"
+		manageServices "disable" "system" "" "${systemServices[@]}"
+		manageTweaks "disable"
 		launchctl load -w /System/Library/LaunchAgents/com.apple.cloudpaird.plist
 		launchctl load -w /System/Library/LaunchAgents/com.apple.dock.plist
 	fi
