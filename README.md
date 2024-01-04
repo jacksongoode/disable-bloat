@@ -1,5 +1,5 @@
-# disable-bloat
-Disables unnecessary services on macOS. Please read through the script before executing! There may be some services you don't want to disable.
+# Disable Bloat on macOS
+Disables unnecessary services and features on macOS (Ventura). Please read through the script before executing! There may be some services you don't want to disable (dock, iCloud, iTunes, etc.).
 
 Just clone and run `chmod +x ./disable_bloat.sh && ./disable_bloat.sh`
 
