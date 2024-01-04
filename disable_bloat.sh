@@ -4,70 +4,55 @@
 # that provides certain functionalities within macOS.
 # Disabling them can help conserve system resources if
 # you aren't using the corresponding features.
-userServices=(
-	# Motion tracking for accessibility features
+services=(
 	'com.apple.accessibility.MotionTrackingAgent'
-	# Contacts and accounts integration
+	'com.apple.AddressBook.abd'
 	'com.apple.AddressBook.ContactsAccountsService'
-	# Related to Apple Music artwork
 	'com.apple.AMPArtworkAgent'
-	# Detects and configures devices for Apple Music
 	'com.apple.AMPDeviceDiscoveryAgent'
-	# Library agent for Apple Music
 	'com.apple.AMPLibraryAgent'
-	# User Privacy and Ad-related services
 	'com.apple.ap.adprivacyd'
 	'com.apple.ap.adservicesd'
 	'com.apple.ap.promotedcontentd'
-	# Siri and voice recognition services
+	'com.apple.appstoreagent'
 	'com.apple.assistant_service'
 	'com.apple.assistantd'
-	# Video conferencing service
 	'com.apple.avconferenced'
-	# Biome and privacy-related agents
+	'com.apple.backupd-helper'
+	'com.apple.backupd'
 	'com.apple.BiomeAgent'
 	'com.apple.biomesyncd'
-	# Calendar agents and notifications
-	'com.apple.CalendarAgent'
 	'com.apple.calaccessd'
-	# Call history management
+	'com.apple.CalendarAgent'
 	'com.apple.CallHistoryPluginHelper'
-	# iCloud Drive sync service
 	'com.apple.cloudd'
-	# Pairing service for Apple devices
 	'com.apple.cloudpaird'
-	# iCloud photo syncing services
 	'com.apple.cloudphotod'
 	'com.apple.CloudPhotosConfiguration'
-	# Cloud settings synchronization agent
 	'com.apple.CloudSettingsSyncAgent'
-	# Cellular communication management on macOS
 	'com.apple.CommCenter-osx'
-	# Contact management services
 	'com.apple.ContactsAgent'
-	# Location services
+	'com.apple.coreduetd'
 	'com.apple.CoreLocationAgent'
-	# Data access and sync for calendar and contacts
 	'com.apple.dataaccess.dataaccessd'
-	# Dictation and language processing
+	'com.apple.DiagnosticReportCleanup.plist'
 	'com.apple.ensemble'
-	# Family sharing and parental control services
 	'com.apple.familycircled'
 	'com.apple.familycontrols.useragent'
+	'com.apple.familycontrols'
 	'com.apple.familynotificationd'
-	# Financial data management for Apple services
 	'com.apple.financed'
-	# Service that manages app follow-ups
+	'com.apple.findmymacmessenger'
 	'com.apple.followupd'
-	# Game Center service
+	'com.apple.FollowUpUI'
+	'com.apple.ftp-proxy'
+	'com.apple.ftpd'
+	'com.apple.GameController.gamecontrollerd'
 	'com.apple.gamed'
-	# Geographic information service for location-based apps
 	'com.apple.geod'
 	'com.apple.geodMachServiceBridge'
-	# HomeKit service management
+	'com.apple.helpd'
 	'com.apple.homed'
-	# iCloud services
-	'com.apple.iCloudUserNotifications'
 	'com.apple.icloud.findmydeviced.aps-demo'
 	'com.apple.icloud.findmydeviced.aps-development'
 	'com.apple.icloud.findmydeviced.aps-production'
@@ -75,7 +60,6 @@ userServices=(
 	'com.apple.icloud.findmydeviced.ua-services'
 	'com.apple.icloud.findmydeviced'
 	'com.apple.icloud.fmfd'
-	# Search party user agent for finding devices
 	'com.apple.icloud.searchpartyd.accessorydiscoverymanager'
 	'com.apple.icloud.searchpartyd.advertisementcache'
 	'com.apple.icloud.searchpartyd.beaconmanager.agentdaemoninternal'
@@ -87,197 +71,132 @@ userServices=(
 	'com.apple.icloud.searchpartyuseragent'
 	'com.apple.iCloudNotificationAgent'
 	'com.apple.iCloudUserNotifications'
-	# Instant messaging service
 	'com.apple.imagent'
-	# Automatic history deletion for iMessage
 	'com.apple.imautomatichistorydeletionagent'
-	# Agent for file transfers via iMessage
 	'com.apple.imtransferagent'
-	# Siri intelligence and personalized suggestions
 	'com.apple.intelligenceplatformd'
-	# iTunes in the Cloud service
 	'com.apple.itunescloudd'
-	# Knowledge base for machine learning on device
+	'com.apple.iTunesHelper.launcher'
 	'com.apple.knowledge-agent'
-	# Managed client and cloud configuration services
+	'com.apple.macos.studentd'
 	'com.apple.ManagedClient.cloudconfigurationd'
 	'com.apple.ManagedClientAgent.enrollagent'
-	# Maps services for notification and real-time updates
 	'com.apple.Maps.mapspushd'
 	'com.apple.Maps.pushdaemon'
-	# Service for analyzing media and photos
 	'com.apple.mediaanalysisd'
-	# Proxy service for network services
-	'com.apple.networkserviceproxy'
-	'com.apple.networkserviceproxy-osx'
-	# Media streaming daemon for iCloud services
 	'com.apple.mediastream.mstreamd'
-	# News app services
+	'com.apple.mobiledeviceupdater'
+	'com.apple.netbiosd'
+	'com.apple.networkserviceproxy-osx'
+	'com.apple.networkserviceproxy'
 	'com.apple.newsd'
-	# URL session service
 	'com.apple.nsurlsessiond'
-	# Parsec services related to Spotlight suggestions
 	'com.apple.parsec-fbf'
 	'com.apple.parsecd'
-	# Wallet and Apple Pay services
 	'com.apple.passd'
-	# Photo analysis for the Photos app
 	'com.apple.photoanalysisd'
-	# Photo library service
 	'com.apple.photolibraryd'
-	# App progress and status management
 	'com.apple.progressd'
-	# iCloud key syncing for protected data
 	'com.apple.protectedcloudstorage.protectedcloudkeysyncing'
-	# Rapport for proximity-based interactions with devices
 	'com.apple.rapportd-user'
-	# Reminders app service
+	'com.apple.rapportd'
 	'com.apple.remindd'
-	# Route tracking for location history and habits
+	'com.apple.ReportCrash.Self'
+	'com.apple.ReportCrash'
+	'com.apple.ReportPanic'
 	'com.apple.routined'
-	# Safari and iCloud history synchronization
 	'com.apple.SafariCloudHistoryPushAgent'
-	# Screensharing services for remote access/control
 	'com.apple.screensharing.agent'
 	'com.apple.screensharing.menuextra'
 	'com.apple.screensharing.MessagesAgent'
-	# ScreenTime tracking and control services
+	'com.apple.screensharing'
 	'com.apple.ScreenTimeAgent'
-	# iCloud keychain syncing agent
 	'com.apple.security.cloudkeychainproxy3'
-	# Sharing services for AirDrop, Handoff, etc.
 	'com.apple.sharingd'
-	# Sidecar services for using iPad as a secondary display
 	'com.apple.sidecar-hid-relay'
 	'com.apple.sidecar-relay'
-	# Siri's background agent
 	'com.apple.Siri.agent'
-	# Management of Siri usage context
 	'com.apple.siri.context.service'
-	'com.apple.siriknowledged'
-	'com.apple.suggestd'
-	# Student management services for education
-	'com.apple.macos.studentd'
-	# Knowledge management for Siri
-	'com.apple.siriknowledged'
-	# Suggestion service based on usage and search patterns
-	'com.apple.suggestd'
-	# Tips app service
-	'com.apple.tipsd'
-	# Telephony services for managing calls on macOS
-	'com.apple.telephonyutilities.callservicesd'
-	# Time Machine helper agents
-	'com.apple.TMHelperAgent'
-	'com.apple.TMHelperAgent.SetupOffer'
-	# Trial software and demo functionality
-	'com.apple.triald'
-	# Accessibility services agent
-	'com.apple.universalaccessd'
-	# Usage tracking agent for reporting app usage
-	'com.apple.UsageTrackingAgent'
-	# Video subscriptions and streaming service
-	'com.apple.videosubscriptionsd'
-	# Measures and improves Wi-Fi performance
-	'com.apple.WiFiVelocityAgent'
-	# Weather service for providing weather updates
-	'com.apple.weatherd'
-)
-
-# QuickLook related services
-# 'com.apple.quicklook'
-# 'com.apple.quicklook.ui.helper'
-# 'com.apple.quicklook.ThumbnailsAgent'
-
-# System services to enable/disable
-systemServices=(
-	# Backup daemon for Time Machine
-	'com.apple.backupd'
-	# Time Machine helper process for managing backups
-	'com.apple.backupd-helper'
-	# iCloud Drive syncing and storage management
-	'com.apple.cloudd'
-	# Service for pairing with iCloud and Apple devices
-	'com.apple.cloudpaird'
-	# iCloud Photo Library service for syncing photos
-	'com.apple.cloudphotod'
-	# Configuration for iCloud Photos services
-	'com.apple.CloudPhotosConfiguration'
-	# Location services to manage location-related requests
-	'com.apple.CoreLocationAgent'
-	# Data fusion and pattern-learning service
-	'com.apple.coreduetd'
-	# Parental controls to manage user access and restrictions
-	'com.apple.familycontrols'
-	# Messaging service to support Find My Mac
-	'com.apple.findmymacmessenger'
-	# Service that manages follow-up activities for apps
-	'com.apple.followupd'
-	# FollowUp UI for managing follow-up reminders
-	'com.apple.FollowUpUI'
-	# FTP proxy service for sharing files over networks
-	'com.apple.ftp-proxy'
-	# FTP daemon to support FTP server functionality
-	'com.apple.ftpd'
-	# Game controller daemon for managing game controller events
-	'com.apple.GameController.gamecontrollerd'
-	# Service dealing with iCloud Keychain syncing
-	'com.apple.icloud.fmfd'
-	# Service to manage and locate lost devices with iCloud integration
-	'com.apple.icloud.searchpartyd'
-	# Service managing iTunes content in the Cloud
-	'com.apple.itunescloudd'
-	# Manages enterprise and configuration profiles
-	'com.apple.ManagedClient.cloudconfigurationd'
-	# NetBIOS daemon for legacy Windows networking support
-	'com.apple.netbiosd'
-	# Handles URLSession tasks in the background
-	'com.apple.nsurlsessiond'
-	# Syncs iCloud Keychain and protected data
-	'com.apple.protectedcloudstorage.protectedcloudkeysyncing'
-	# Service for connectivity between Apple devices using wireless
-	'com.apple.rapportd'
-	# Provides functionality for Screen Sharing features
-	'com.apple.screensharing'
-	# iCloud Keychain proxy service for syncing keychains
-	'com.apple.security.cloudkeychainproxy3'
-	# Service that updates assets for Siri such as voices and data
 	'com.apple.siri.morphunassetsupdaterd'
-	# Siri inference daemon to improve suggestions and functionality
 	'com.apple.siriinferenced'
-	# System trial daemon for managing trials and demos
+	'com.apple.siriknowledged'
+	'com.apple.softwareupdate_notify_agent'
+	'com.apple.suggestd'
+	'com.apple.telephonyutilities.callservicesd'
+	'com.apple.tipsd'
+	'com.apple.TMHelperAgent.SetupOffer'
+	'com.apple.TMHelperAgent'
 	'com.apple.triald.system'
-	# WiFi analytics service for collecting WiFi network performance
+	'com.apple.triald'
+	'com.apple.TrustEvaluationAgent'
+	'com.apple.universalaccessd'
+	'com.apple.UsageTrackingAgent'
+	'com.apple.videosubscriptionsd'
+	'com.apple.weatherd'
 	'com.apple.wifianalyticsd'
+	'com.apple.WiFiVelocityAgent'
+	# 'com.apple.quicklook.ThumbnailsAgent'
+	# 'com.apple.quicklook.ui.helper'
+	# 'com.apple.quicklook'
 )
 
-# Function to manage launchctl services using bootstrap/bootout and enable/disable
+# Function to manage launchctl services by checking the existence of .plist files
 manageServices() {
 	local action=$1
-	local domain=$2 # Pass "user" or "system" as domain
-	local userID=$3 # Pass the user ID for user services, ignored for system services
-	local services=("${@:4}")
+	local userID=$2 # Pass the user ID for user services
+	local services=("${@:3}")
 	local base_cmd="sudo launchctl"
 
+	userPlistPaths=(
+		"${HOME}/Library/LaunchAgents/"
+		"/Library/LaunchAgents/"
+		"/System/Library/LaunchAgents/"
+	)
+	systemPlistPaths=(
+		"/Library/LaunchDaemons/"
+		"/System/Library/LaunchDaemons/"
+	)
+
 	for service in "${services[@]}"; do
-		# If domain is "user" or "gui", include the userID, else it is a system domain and userID is not needed.
-		if [[ ${domain} == "user" || ${domain} == "gui" ]]; then
-			target="${domain}/${userID}/${service}"
-			sleep=0.25
-		else
-			target="system/${service}"
-			sleep=1
+		found=0
+		target=""
+		sleepTime=0
+
+		# Check user plist paths
+		if [[ ${action} == "disable" ]]; then
+			for path in "${userPlistPaths[@]}"; do
+				if [[ -f "${path}${service}.plist" ]]; then
+					target="user/${userID}/${service}"
+					found=1
+					break
+				fi
+			done
 		fi
 
-		if [[ ${action} == "disable" ]]; then
-			echo "Disabling service in domain ${domain}: ${service}"
-			${base_cmd} bootout "${target}"
-			sleep "${sleep}"
-			${base_cmd} disable "${target}"
+		if [[ ${action} == "enable" || ${found} -eq 0 ]]; then
+			# Check system plist paths if enabling or not found in user paths
+			for path in "${systemPlistPaths[@]}"; do
+				if [[ -f "${path}${service}.plist" ]]; then
+					target="system/${service}"
+					found=1
+					break
+				fi
+			done
+		fi
+
+		sleepTime=0.5
+		if [[ ${found} -eq 1 ]]; then
+			if [[ ${action} == "disable" ]]; then
+				echo "Disabling service: ${service}"
+				${base_cmd} bootout "${target}" && sleep "${sleepTime}"
+				${base_cmd} disable "${target}"
+			elif [[ ${action} == "enable" ]]; then
+				echo "Enabling service: ${service}"
+				${base_cmd} enable "${target}"
+				${base_cmd} bootstrap "${target}" && sleep "${sleepTime}"
+			fi
 		else
-			echo "Enabling service in domain ${domain}: ${service}"
-			${base_cmd} enable "${target}"
-			${base_cmd} bootstrap "${target}"
-			sleep "${sleep}"
+			echo "Service not found: ${service}"
 		fi
 	done
 }
@@ -291,12 +210,14 @@ manageTweaks() {
 		# This means applications that were open before logout or shutdown won't automatically reopen.
 		defaults write com.apple.loginwindow TALLogoutSavesState -bool false
 		defaults write com.apple.loginwindow LoginwindowLaunchesRelaunchApps -bool false
+
 		# Turns off window opening and closing animations to improve system responsiveness.
 		defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
 		# Reduces the time it takes to resize windows to near-instant (0.001 seconds).
 		defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
 		# Disables the animation for Quick Look panels, making them appear instantly.
 		defaults write -g QLPanelAnimationDuration -float 0
+
 		# Sets the Dock auto-hide and show delay to zero, making it react instantly.
 		defaults write com.apple.dock autohide-time-modifier -float 0
 		defaults write com.apple.dock autohide-delay -float 60
@@ -304,37 +225,105 @@ manageTweaks() {
 		defaults write com.apple.dock no-bouncing -bool true
 		# Disables the Dock launching animation when opening applications.
 		defaults write com.apple.dock launchanim -bool false
+
 		# Disables the low-priority CPU throttle, giving processes full CPU priority.
 		# Use with caution as it can affect the system's thermal and power characteristics.
-		sudo sysctl -w debug.lowpri_throttle_enabled=0
+		# sudo sysctl -w debug.lowpri_throttle_enabled=0
+
+		# Auto check for updates
+		defaults write com.apple.SoftwareUpdate AutomaticCheckEnabled -bool false
+		# Auto download updates in background
+		defaults write com.apple.SoftwareUpdate AutomaticDownload -bool false
+		# Don't install App updates automatically
+		defaults write com.apple.commerce AutoUpdate -bool false
+		# Don't install MacOS updates automatically
+		defaults write com.apple.commerce AutoUpdateRestartRequired -bool false
+		# Don't install Security updates automatically
+		defaults write com.apple.SoftwareUpdate CriticalUpdateInstall -bool false
 	else
 		defaults delete com.apple.loginwindow TALLogoutSavesState
 		defaults delete com.apple.loginwindow LoginwindowLaunchesRelaunchApps
+
 		defaults delete NSGlobalDomain NSAutomaticWindowAnimationsEnabled
 		defaults delete NSGlobalDomain NSWindowResizeTime
 		defaults delete -g QLPanelAnimationDuration
+
 		defaults delete com.apple.dock autohide-time-modifier
+		defaults delete com.apple.dock autohide-delay
+		defaults delete com.apple.dock no-bouncing
 		defaults delete com.apple.dock launchanim
-		sudo sysctl -w debug.lowpri_throttle_enabled=1
+
+		# sudo sysctl -w debug.lowpri_throttle_enabled=1
+
+		defaults delete com.apple.SoftwareUpdate AutomaticCheckEnabled
+		defaults delete com.apple.SoftwareUpdate AutomaticDownload
+		defaults delete com.apple.commerce AutoUpdate
+		defaults delete com.apple.commerce AutoUpdateRestartRequired
+		defaults delete com.apple.SoftwareUpdate CriticalUpdateInstall
 	fi
+}
+
+# Check if service is user/system
+checkDomain() {
+	userPlistPaths=(
+		"${HOME}/Library/LaunchAgents/" # User agents
+		"/Library/LaunchAgents/"        # User agents installed by third-party applications
+		"/System/Library/LaunchAgents/" # Protected Apple-provided user agents
+	)
+
+	systemPlistPaths=(
+		"/Library/LaunchDaemons/"        # Third-party system daemons
+		"/System/Library/LaunchDaemons/" # Apple system daemons
+	)
+
+	# Check for presence of service plist files
+	for service in "${services[@]}"; do
+		userFound=0
+		systemFound=0
+
+		# Check user plist paths
+		for path in "${userPlistPaths[@]}"; do
+			if [[ -f "${path}${service}.plist" ]]; then
+				userFound=1
+				break
+			fi
+		done
+
+		# Check system plist paths
+		for path in "${systemPlistPaths[@]}"; do
+			if [[ -f "${path}${service}.plist" ]]; then
+				systemFound=1
+				break
+			fi
+		done
+
+		# Report results
+		if [[ ${userFound} -eq 1 ]] && [[ ${systemFound} -eq 1 ]]; then
+			echo "Both:      ${service}"
+		elif [[ ${userFound} -eq 1 ]]; then
+			echo "User:      ${service}"
+		elif [[ ${systemFound} -eq 1 ]]; then
+			echo "System:    ${service}"
+		else
+			echo "Not found: ${service}"
+		fi
+	done
 }
 
 # Main function
 main() {
+
 	if [[ ${action} == "--revert" ]]; then
-		manageServices "enable" "gui" "${UID}" "${userServices[@]}"
-		manageServices "enable" "system" "" "${systemServices[@]}"
+		manageServices "enable" "${UID}" "${services[@]}"
 		manageTweaks "enable"
-		# Unload cloud services
-		launchctl load /System/Library/LaunchAgents/com.apple.cloudpaird.plist
-		# Unload dock
-		launchctl load /System/Library/LaunchAgents/com.apple.dock.plist
+		launchctl load -w /System/Library/LaunchAgents/com.apple.cloudpaird.plist
+		launchctl load -w /System/Library/LaunchAgents/com.apple.dock.plist
 	else
-		manageServices "disable" "gui" "${UID}" "${userServices[@]}"
-		manageServices "disable" "system" "" "${systemServices[@]}"
+		manageServices "disable" "${UID}" "${services[@]}"
 		manageTweaks "disable"
-		launchctl unload /System/Library/LaunchAgents/com.apple.cloudpaird.plist
-		launchctl unload /System/Library/LaunchAgents/com.apple.dock.plist
+		# Unload cloud services & dock
+		launchctl unload -w /System/Library/LaunchAgents/com.apple.cloudpaird.plist
+		launchctl unload -w /System/Library/LaunchAgents/com.apple.dock.plist
 	fi
 }
 
