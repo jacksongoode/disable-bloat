@@ -163,26 +163,22 @@ manageServices() {
 		sleepTime=0
 
 		# Check user plist paths
-		if [[ ${action} == "disable" ]]; then
-			for path in "${userPlistPaths[@]}"; do
-				if [[ -f "${path}${service}.plist" ]]; then
-					target="user/${userID}/${service}"
-					found=1
-					break
-				fi
-			done
-		fi
+		for path in "${userPlistPaths[@]}"; do
+			if [[ -f "${path}${service}.plist" ]]; then
+				target="user/${userID}/${service}"
+				found=1
+				break
+			fi
+		done
 
-		if [[ ${action} == "enable" || ${found} -eq 0 ]]; then
-			# Check system plist paths if enabling or not found in user paths
-			for path in "${systemPlistPaths[@]}"; do
-				if [[ -f "${path}${service}.plist" ]]; then
-					target="system/${service}"
-					found=1
-					break
-				fi
-			done
-		fi
+		# Check system plist paths if enabling or not found in user paths
+		for path in "${systemPlistPaths[@]}"; do
+			if [[ -f "${path}${service}.plist" ]]; then
+				target="system/${service}"
+				found=1
+				break
+			fi
+		done
 
 		sleepTime=0.5
 		if [[ ${found} -eq 1 ]]; then
