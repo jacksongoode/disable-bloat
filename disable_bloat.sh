@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Each service below is actually an agent or daemon
 # that provides certain functionalities within macOS.
@@ -141,30 +141,50 @@ services=(
 manageServices() {
 	local action=$1
 	local userID=$2
-	local prefix
+	local plistPath
+
+	userPlistPaths=(
+		"${HOME}/Library/LaunchAgents/"
+		"/Library/LaunchAgents/"
+		"/System/Library/LaunchAgents/"
+	)
+	systemPlistPaths=(
+		"/Library/LaunchDaemons/"
+		"/System/Library/LaunchDaemons/"
+	)
+
+	# Helper function to handle the actions for a given service and domain
+	handleServiceAction() {
+		local domain=$1
+		local service=$2
+		local plistPath=$3
+		local entry="${domain}/${service}"
+
+		echo -n "${action^}: ${entry}"
+		if [[ ${action} == "disable" ]]; then
+			sudo launchctl bootout "${entry}" &>/dev/null || echo " - failed bootout"
+			sudo launchctl disable "${entry}" || echo " - failed disable"
+		elif [[ ${action} == "enable" ]]; then
+			sudo launchctl enable "${entry}" || echo " - failed enable"
+			sudo launchctl bootstrap "${domain}" "${plistPath}" &>/dev/null || echo " - failed bootstrap"
+		fi
+		sleep 0.1
+	}
 
 	for service in "${services[@]}"; do
-		# Check both user and system domains
-		for domain in "gui/${userID}" "system"; do
-			prefix=$([[ $domain == "system" ]] && echo "/System" || echo "${HOME}")
-			# Construct the full path to plist depending on the service domain
-			local userPlistPath="${prefix}/Library/LaunchAgents/${service}.plist"
-			local systemPlistPath="/Library/LaunchDaemons/${service}.plist"
-
-			# Enable or disable found services
-			for plistPath in "$userPlistPath" "$systemPlistPath"; do
-				if [[ -f ${plistPath} ]]; then
-					echo "${action} service: ${domain}/${service}"
-					if [[ ${action} == "disable" ]]; then
-						sudo launchctl bootout "${domain}/${service}" &>/dev/null || echo "Failed to bootout ${domain}/${service}"
-						sudo launchctl disable "${domain}/${service}" || echo "Failed to disable ${domain}/${service}"
-					elif [[ ${action} == "enable" ]]; then
-						sudo launchctl enable "${domain}/${service}" || echo "Failed to enable ${domain}/${service}"
-						sudo launchctl bootstrap "${domain}" "${plistPath}" &>/dev/null || echo "Failed to bootstrap ${domain}/${service}"
-					fi
-					sleep 0.1
-				fi
-			done
+		# Process user services
+		for userPath in "${userPlistPaths[@]}"; do
+			plistPath="${userPath}${service}.plist"
+			if [[ -f ${plistPath} ]]; then
+				handleServiceAction "gui/${userID}" "${service}" "${plistPath}"
+			fi
+		done
+		# Process system services
+		for systemPath in "${systemPlistPaths[@]}"; do
+			plistPath="${systemPath}${service}.plist"
+			if [[ -f ${plistPath} ]]; then
+				handleServiceAction "system" "${service}" "${plistPath}"
+			fi
 		done
 	done
 }
@@ -208,8 +228,8 @@ manageTweaks() {
 		# Read the command into the domain, subkey, and the rest
 		read -r domain subkey rest <<<"${cmd}"
 
+		echo "${action^}: ${domain} ${subkey}"
 		if [[ ${action} == "disable" ]]; then
-			echo "Disabling tweak: ${domain} ${subkey}"
 			if defaults write "${domain}" "${subkey}" "${rest}"; then
 				echo "Successfully disabled: ${domain} ${subkey}"
 			else
@@ -246,9 +266,8 @@ main() {
 		launchctlAction="unload"
 	fi
 
-	# Load/unload cloud services & dock based on action
-	sudo launchctl "${launchctlAction}" -w /System/Library/LaunchAgents/com.apple.cloudpaird.plist
-	sudo launchctl "${launchctlAction}" -w /System/Library/LaunchAgents/com.apple.dock.plist
+	# Load/unload dock based
+	launchctl "${launchctlAction}" /System/Library/LaunchAgents/com.apple.Dock.plist
 }
 
 main "$@"
