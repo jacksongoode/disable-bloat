@@ -33,7 +33,7 @@ services=(
 	'com.apple.CommCenter-osx'
 	'com.apple.ContactsAgent'
 	'com.apple.coreduetd'
-	'com.apple.CoreLocationAgent'
+	# 'com.apple.CoreLocationAgent'
 	'com.apple.dataaccess.dataaccessd'
 	'com.apple.DiagnosticReportCleanup.plist'
 	'com.apple.ensemble'
@@ -135,192 +135,107 @@ services=(
 	'com.apple.weatherd'
 	'com.apple.wifianalyticsd'
 	'com.apple.WiFiVelocityAgent'
-	# 'com.apple.quicklook.ThumbnailsAgent'
-	# 'com.apple.quicklook.ui.helper'
-	# 'com.apple.quicklook'
 )
 
-# Function to manage launchctl services by checking the existence of .plist files
+# Function to disable or enable services
 manageServices() {
 	local action=$1
-	local userID=$2 # Pass the user ID for user services
-	local services=("${@:3}")
-	local base_cmd="sudo launchctl"
-
-	userPlistPaths=(
-		"${HOME}/Library/LaunchAgents/"
-		"/Library/LaunchAgents/"
-		"/System/Library/LaunchAgents/"
-	)
-	systemPlistPaths=(
-		"/Library/LaunchDaemons/"
-		"/System/Library/LaunchDaemons/"
-	)
+	local userID=$2
+	local prefix
 
 	for service in "${services[@]}"; do
-		found=0
-		target=""
-		sleepTime=0
+		# Check both user and system domains
+		for domain in "gui/${userID}" "system"; do
+			prefix=$([[ $domain == "system" ]] && echo "/System" || echo "${HOME}")
+			# Construct the full path to plist depending on the service domain
+			local userPlistPath="${prefix}/Library/LaunchAgents/${service}.plist"
+			local systemPlistPath="/Library/LaunchDaemons/${service}.plist"
 
-		# Check user plist paths
-		for path in "${userPlistPaths[@]}"; do
-			if [[ -f "${path}${service}.plist" ]]; then
-				target="user/${userID}/${service}"
-				found=1
-				break
-			fi
+			# Enable or disable found services
+			for plistPath in "$userPlistPath" "$systemPlistPath"; do
+				if [[ -f ${plistPath} ]]; then
+					echo "${action} service: ${domain}/${service}"
+					if [[ ${action} == "disable" ]]; then
+						sudo launchctl bootout "${domain}/${service}" &>/dev/null || echo "Failed to bootout ${domain}/${service}"
+						sudo launchctl disable "${domain}/${service}" || echo "Failed to disable ${domain}/${service}"
+					elif [[ ${action} == "enable" ]]; then
+						sudo launchctl enable "${domain}/${service}" || echo "Failed to enable ${domain}/${service}"
+						sudo launchctl bootstrap "${domain}" "${plistPath}" &>/dev/null || echo "Failed to bootstrap ${domain}/${service}"
+					fi
+					sleep 0.25
+				fi
+			done
 		done
-
-		# Check system plist paths if enabling or not found in user paths
-		for path in "${systemPlistPaths[@]}"; do
-			if [[ -f "${path}${service}.plist" ]]; then
-				target="system/${service}"
-				found=1
-				break
-			fi
-		done
-
-		sleepTime=0.5
-		if [[ ${found} -eq 1 ]]; then
-			if [[ ${action} == "disable" ]]; then
-				echo "Disabling service: ${service}"
-				${base_cmd} bootout "${target}" && sleep "${sleepTime}"
-				${base_cmd} disable "${target}"
-			elif [[ ${action} == "enable" ]]; then
-				echo "Enabling service: ${service}"
-				${base_cmd} enable "${target}"
-				${base_cmd} bootstrap "${target}" && sleep "${sleepTime}"
-			fi
-		else
-			echo "Service not found: ${service}"
-		fi
 	done
 }
 
-# Function to apply/revert tweaks
+# Function to apply or revert system tweaks
 manageTweaks() {
 	local action=$1
-
-	if [[ ${action} == "disable" ]]; then
-		# Disables the automatic restoration of apps after logging out or shutting down.
-		# This means applications that were open before logout or shutdown won't automatically reopen.
-		defaults write com.apple.loginwindow TALLogoutSavesState -bool false
-		defaults write com.apple.loginwindow LoginwindowLaunchesRelaunchApps -bool false
-
-		# Turns off window opening and closing animations to improve system responsiveness.
-		defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
-		# Reduces the time it takes to resize windows to near-instant (0.001 seconds).
-		defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
-		# Disables the animation for Quick Look panels, making them appear instantly.
-		defaults write -g QLPanelAnimationDuration -float 0
-
-		# Sets the Dock auto-hide and show delay to zero, making it react instantly.
-		defaults write com.apple.dock autohide-time-modifier -float 0
-		defaults write com.apple.dock autohide-delay -float 60
-		# Disables the Dock bouncing.
-		defaults write com.apple.dock no-bouncing -bool true
-		# Disables the Dock launching animation when opening applications.
-		defaults write com.apple.dock launchanim -bool false
-
-		# Disables the low-priority CPU throttle, giving processes full CPU priority.
-		# Use with caution as it can affect the system's thermal and power characteristics.
-		# sudo sysctl -w debug.lowpri_throttle_enabled=0
-
-		# Auto check for updates
-		defaults write com.apple.SoftwareUpdate AutomaticCheckEnabled -bool false
-		# Auto download updates in background
-		defaults write com.apple.SoftwareUpdate AutomaticDownload -bool false
-		# Don't install App updates automatically
-		defaults write com.apple.commerce AutoUpdate -bool false
-		# Don't install MacOS updates automatically
-		defaults write com.apple.commerce AutoUpdateRestartRequired -bool false
-		# Don't install Security updates automatically
-		defaults write com.apple.SoftwareUpdate CriticalUpdateInstall -bool false
-	else
-		defaults delete com.apple.loginwindow TALLogoutSavesState
-		defaults delete com.apple.loginwindow LoginwindowLaunchesRelaunchApps
-
-		defaults delete NSGlobalDomain NSAutomaticWindowAnimationsEnabled
-		defaults delete NSGlobalDomain NSWindowResizeTime
-		defaults delete -g QLPanelAnimationDuration
-
-		defaults delete com.apple.dock autohide-time-modifier
-		defaults delete com.apple.dock autohide-delay
-		defaults delete com.apple.dock no-bouncing
-		defaults delete com.apple.dock launchanim
-
-		# sudo sysctl -w debug.lowpri_throttle_enabled=1
-
-		defaults delete com.apple.SoftwareUpdate AutomaticCheckEnabled
-		defaults delete com.apple.SoftwareUpdate AutomaticDownload
-		defaults delete com.apple.commerce AutoUpdate
-		defaults delete com.apple.commerce AutoUpdateRestartRequired
-		defaults delete com.apple.SoftwareUpdate CriticalUpdateInstall
-	fi
-}
-
-# Check if service is user/system
-checkDomain() {
-	userPlistPaths=(
-		"${HOME}/Library/LaunchAgents/" # User agents
-		"/Library/LaunchAgents/"        # User agents installed by third-party applications
-		"/System/Library/LaunchAgents/" # Protected Apple-provided user agents
+	# Map tweak keys to their respective domains and values
+	declare -A tweaks=(
+		# Disables the automatic restoration of apps after logout or shutdown
+		["com.apple.loginwindow TALLogoutSavesState"]="bool false"
+		# Prevents applications from automatically reopening upon login
+		["com.apple.loginwindow LoginwindowLaunchesRelaunchApps"]="bool false"
+		# Turns off window opening and closing animations
+		["NSGlobalDomain NSAutomaticWindowAnimationsEnabled"]="bool false"
+		# Reduces the time it takes to resize windows
+		["NSGlobalDomain NSWindowResizeTime"]="float 0.001"
+		# Disables the animation for Quick Look panels
+		["-g QLPanelAnimationDuration"]="float 0"
+		# Sets the Dock auto-hide and show delay to zero (making it react instantly)
+		["com.apple.dock autohide-time-modifier"]="float 0"
+		# Sets the delay before Dock auto-hide begins
+		["com.apple.dock autohide-delay"]="float 0"
+		# Disables bouncing animation for Dock icons
+		["com.apple.dock no-bouncing"]="bool true"
+		# Disables the opening animation for applications from the Dock
+		["com.apple.dock launchanim"]="bool false"
+		# Turns off auto-check for software updates
+		["com.apple.SoftwareUpdate AutomaticCheckEnabled"]="bool false"
+		# Disables automatic download of software updates
+		["com.apple.SoftwareUpdate AutomaticDownload"]="bool false"
+		# Prevents automatic installation of app updates
+		["com.apple.commerce AutoUpdate"]="bool false"
+		# Disables automatic reboot to install macOS updates
+		["com.apple.commerce AutoUpdateRestartRequired"]="bool false"
+		# Disables automatic installation of critical security updates
+		["com.apple.SoftwareUpdate CriticalUpdateInstall"]="bool false"
 	)
 
-	systemPlistPaths=(
-		"/Library/LaunchDaemons/"        # Third-party system daemons
-		"/System/Library/LaunchDaemons/" # Apple system daemons
-	)
-
-	# Check for presence of service plist files
-	for service in "${services[@]}"; do
-		userFound=0
-		systemFound=0
-
-		# Check user plist paths
-		for path in "${userPlistPaths[@]}"; do
-			if [[ -f "${path}${service}.plist" ]]; then
-				userFound=1
-				break
-			fi
-		done
-
-		# Check system plist paths
-		for path in "${systemPlistPaths[@]}"; do
-			if [[ -f "${path}${service}.plist" ]]; then
-				systemFound=1
-				break
-			fi
-		done
-
-		# Report results
-		if [[ ${userFound} -eq 1 ]] && [[ ${systemFound} -eq 1 ]]; then
-			echo "Both:      ${service}"
-		elif [[ ${userFound} -eq 1 ]]; then
-			echo "User:      ${service}"
-		elif [[ ${systemFound} -eq 1 ]]; then
-			echo "System:    ${service}"
+	for key in "${!tweaks[@]}"; do
+		IFS='.' read -r domain subkey <<<"${key}" # Split the string into domain and key
+		if [[ ${action} == "disable" ]]; then
+			defaults write "${domain}" "${subkey}" ${tweaks[$key]}
 		else
-			echo "Not found: ${service}"
+			defaults delete "${domain}" "${subkey}" 2>/dev/null
 		fi
 	done
+
+	# Throttling tweak can be uncommented if needed
+	# [[ ${action} == "disable" ]] && sudo sysctl -w debug.lowpri_throttle_enabled=0
+	# [[ ${action} == "enable" ]] && sudo sysctl -w debug.lowpri_throttle_enabled=1
 }
 
-# Main function
+# Main function to process the command line action
 main() {
+	local action=$1
+	local launchctlAction
 
 	if [[ ${action} == "--revert" ]]; then
-		manageServices "enable" "${UID}" "${services[@]}"
+		manageServices "enable" "${UID}"
 		manageTweaks "enable"
-		launchctl load -w /System/Library/LaunchAgents/com.apple.cloudpaird.plist
-		launchctl load -w /System/Library/LaunchAgents/com.apple.dock.plist
+		launchctlAction="load"
 	else
-		manageServices "disable" "${UID}" "${services[@]}"
+		manageServices "disable" "${UID}"
 		manageTweaks "disable"
-		# Unload cloud services & dock
-		launchctl unload -w /System/Library/LaunchAgents/com.apple.cloudpaird.plist
-		launchctl unload -w /System/Library/LaunchAgents/com.apple.dock.plist
+		launchctlAction="unload"
 	fi
+
+	# Load/unload cloud services & dock based on action
+	sudo launchctl "${launchctlAction}" -w /System/Library/LaunchAgents/com.apple.cloudpaird.plist
+	sudo launchctl "${launchctlAction}" -w /System/Library/LaunchAgents/com.apple.dock.plist
 }
 
 main "$@"
