@@ -162,7 +162,7 @@ manageServices() {
 						sudo launchctl enable "${domain}/${service}" || echo "Failed to enable ${domain}/${service}"
 						sudo launchctl bootstrap "${domain}" "${plistPath}" &>/dev/null || echo "Failed to bootstrap ${domain}/${service}"
 					fi
-					sleep 0.25
+					sleep 0.1
 				fi
 			done
 		done
@@ -173,44 +173,57 @@ manageServices() {
 manageTweaks() {
 	local action=$1
 	# Map tweak keys to their respective domains and values
-	declare -A tweaks=(
+	tweaks=(
 		# Disables the automatic restoration of apps after logout or shutdown
-		["com.apple.loginwindow TALLogoutSavesState"]="bool false"
+		"com.apple.loginwindow TALLogoutSavesState -bool false"
 		# Prevents applications from automatically reopening upon login
-		["com.apple.loginwindow LoginwindowLaunchesRelaunchApps"]="bool false"
+		"com.apple.loginwindow LoginwindowLaunchesRelaunchApps -bool false"
 		# Turns off window opening and closing animations
-		["NSGlobalDomain NSAutomaticWindowAnimationsEnabled"]="bool false"
+		"NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false"
 		# Reduces the time it takes to resize windows
-		["NSGlobalDomain NSWindowResizeTime"]="float 0.001"
+		"NSGlobalDomain NSWindowResizeTime -float 0.001"
 		# Disables the animation for Quick Look panels
-		["-g QLPanelAnimationDuration"]="float 0"
+		"-g QLPanelAnimationDuration -float 0"
 		# Sets the Dock auto-hide and show delay to zero (making it react instantly)
-		["com.apple.dock autohide-time-modifier"]="float 0"
+		"com.apple.dock autohide-time-modifier -float 0"
 		# Sets the delay before Dock auto-hide begins
-		["com.apple.dock autohide-delay"]="float 0"
+		"com.apple.dock autohide-delay -float 0"
 		# Disables bouncing animation for Dock icons
-		["com.apple.dock no-bouncing"]="bool true"
+		"com.apple.dock no-bouncing -bool true"
 		# Disables the opening animation for applications from the Dock
-		["com.apple.dock launchanim"]="bool false"
+		"com.apple.dock launchanim -bool false"
 		# Turns off auto-check for software updates
-		["com.apple.SoftwareUpdate AutomaticCheckEnabled"]="bool false"
+		"com.apple.SoftwareUpdate AutomaticCheckEnabled -bool false"
 		# Disables automatic download of software updates
-		["com.apple.SoftwareUpdate AutomaticDownload"]="bool false"
+		"com.apple.SoftwareUpdate AutomaticDownload -bool false"
 		# Prevents automatic installation of app updates
-		["com.apple.commerce AutoUpdate"]="bool false"
+		"com.apple.commerce AutoUpdate -bool false"
 		# Disables automatic reboot to install macOS updates
-		["com.apple.commerce AutoUpdateRestartRequired"]="bool false"
+		"com.apple.commerce AutoUpdateRestartRequired -bool false"
 		# Disables automatic installation of critical security updates
-		["com.apple.SoftwareUpdate CriticalUpdateInstall"]="bool false"
+		"com.apple.SoftwareUpdate CriticalUpdateInstall -bool false"
 	)
 
-	for key in "${!tweaks[@]}"; do
-		IFS='.' read -r domain subkey <<<"${key}" # Split the string into domain and key
+	for cmd in "${tweaks[@]}"; do
+		# Read the command into the domain, subkey, and the rest
+		read -r domain subkey rest <<<"${cmd}"
+
 		if [[ ${action} == "disable" ]]; then
-			defaults write "${domain}" "${subkey}" ${tweaks[$key]}
-		else
-			defaults delete "${domain}" "${subkey}" 2>/dev/null
+			echo "Disabling tweak: ${domain} ${subkey}"
+			if defaults write "${domain}" "${subkey}" "${rest}"; then
+				echo "Successfully disabled: ${domain} ${subkey}"
+			else
+				echo "Failed to disable: ${domain} ${subkey}" >&2
+			fi
+		elif [[ ${action} == "enable" ]]; then
+			echo "Reverting tweak: ${domain} ${subkey}"
+			if defaults delete "${domain}" "${subkey}" 2>/dev/null; then
+				echo "Successfully reverted: ${domain} ${subkey}"
+			else
+				echo "No existing setting to revert or failed to revert: ${domain} ${subkey}" >&2
+			fi
 		fi
+		sleep 0.1
 	done
 
 	# Throttling tweak can be uncommented if needed
