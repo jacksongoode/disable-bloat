@@ -8,9 +8,9 @@ Just clone and run `chmod +x ./disable_bloat.sh && ./disable_bloat.sh`
 
 To revert settings, just run `./disable_bloat.sh --revert`
 
-## Note to users:
+## Issues
 
-Please open up issues with this script so we can document consequences of disabling each service!
+*Please* open up issues with this script so we can document consequences of disabling each service!
 
 ## Related projects
 - https://gist.github.com/b0gdanw/812997a189f72f3953e0a1bb237f783d
